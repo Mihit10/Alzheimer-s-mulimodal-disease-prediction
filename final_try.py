@@ -5,6 +5,7 @@ import pandas as pd
 import numpy as np
 import joblib
 import os
+import shap
 
 # =====================================================
 # 🧩 LOAD TRAINED MODELS AND TOOLS
@@ -25,7 +26,7 @@ trained_columns = joblib.load(os.path.join(model_path, "trained_columns.joblib")
 
 print(f"✅ All models loaded successfully ({len(trained_columns)} features)")
 
-print(f"✅ All models loaded successfully ({len(trained_columns)} features)")
+
 # =====================================================
 # 📥 NEW PATIENT INPUT
 # =====================================================
@@ -59,7 +60,7 @@ for c in new_patient_encoded.columns:
 aligned_input_scaled = scaler.transform(aligned_input)
 
 # =====================================================
-# 🔧 ENSURE MODEL SHAPE MATCHING
+# 🔧 MODEL SHAPE MATCHING
 # =====================================================
 try:
     n_expected_xgb = xgb_model.n_features_in_
@@ -95,23 +96,47 @@ for label, prob in zip(le_dx.classes_, blend_probs[0]):
     print(f"  {label}: {prob:.3f}")
 
 # =====================================================
-# 🧠 INTERPRET RISK BASED ON CN PROBABILITY
+# 🧠 RISK INTERPRETATION
 # =====================================================
-# Find CN probability
 cn_prob = blend_probs[0][list(le_dx.classes_).index("CN")]
 
 if cn_prob >= 0.80:
-    risk = "🟢 Very Low Risk — Strongly aligned with CN (Cognitively Stable)"
-elif 0.60 <= cn_prob < 0.80:
-    risk = "🟢 Low Risk — Likely CN, mild chance of early impairment"
-elif 0.40 <= cn_prob < 0.60:
-    risk = "🟡 Moderate Risk — Borderline, possible early MCI signals"
-elif 0.20 <= cn_prob < 0.40:
-    risk = "🟠 High Risk — Higher probability of MCI progression"
+    risk = "🟢 Very Low Risk — Strongly aligned with CN"
+elif cn_prob >= 0.60:
+    risk = "🟢 Low Risk — Likely CN"
+elif cn_prob >= 0.40:
+    risk = "🟡 Moderate Risk"
+elif cn_prob >= 0.20:
+    risk = "🟠 High Risk"
 else:
-    risk = "🔴 Very High Risk — Strong signal toward MCI/Dementia"
+    risk = "🔴 Very High Risk"
 
 print(f"\n🧾 CN Probability: {cn_prob:.3f}")
 print(f"📈 Risk Category: {risk}")
-os.listdir("D:\\family\\MiniProject\\Allele Prediction\\model_7f")
 
+# =====================================================
+# 🔍 SHAP EXPLANATIONS (WHY the model predicted this)
+# =====================================================
+print("\n==========================")
+print("🔍 SHAP — Feature Contributions")
+print("==========================")
+
+explainer = shap.TreeExplainer(xgb_model)
+shap_values = explainer.shap_values(aligned_for_xgb)
+
+# contributions for predicted class
+contrib = shap_values[pred_class_idx][0]
+
+feature_importance = pd.DataFrame({
+    'feature': trained_columns[:len(contrib)],
+    'contribution': contrib
+}).sort_values('contribution', key=abs, ascending=False)
+
+print("\nTop features influencing prediction:")
+for _, row in feature_importance.head(7).iterrows():
+    direction = (
+        "↑ pushes toward Dementia/MCI"
+        if row['contribution'] > 0 
+        else "↓ pushes toward CN"
+    )
+    print(f"{row['feature']}: {row['contribution']:.3f} → {direction}")
