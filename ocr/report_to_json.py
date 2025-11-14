@@ -91,7 +91,7 @@ JSON FORMAT:
 
 # Usage
 if __name__ == "__main__":
-    image_path = r"D:\coding\Alzheimer-s-mulimodal-disease-prediction\ocr\1.png"
+    image_path = "1.png"
     extractor = MedicalBloodReportExtractor()
     result = extractor.extract(image_path)
 
