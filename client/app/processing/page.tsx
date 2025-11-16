@@ -6,12 +6,11 @@ import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { usePatientStore } from "../store/patientStore";
 
-const BASE_URL = "http://localhost:8000"; // change if backend host/port differs
+const BASE_URL = "http://localhost:8000";
 
 export default function ProcessingPage() {
   const router = useRouter();
 
-  // Zustand actions
   const session = usePatientStore((s) => s.session);
   const setOCRResult = usePatientStore((s) => s.setOCRResult);
   const setMRIResult = usePatientStore((s) => s.setMRIResult);
@@ -22,8 +21,8 @@ export default function ProcessingPage() {
   const [stepIndex, setStepIndex] = useState(0);
   const [busy, setBusy] = useState(true);
 
-  const pushLog = (text: string) =>
-    setLogs((l) => [...l, `${new Date().toLocaleTimeString()} — ${text}`]);
+  const pushLog = (t: string) =>
+    setLogs((l) => [...l, `${new Date().toLocaleTimeString()} — ${t}`]);
 
   useEffect(() => {
     let mounted = true;
@@ -32,23 +31,29 @@ export default function ProcessingPage() {
       pushLog("Initializing cognitive analysis engine...");
       await delay(600);
 
-      // 1) OCR
+      /* -------------------------------------------- */
+      /* 1) OCR Extraction */
+      /* -------------------------------------------- */
       if (session.uploads.reportFile) {
         pushLog("Uploading blood report for OCR extraction...");
         setStepIndex(1);
+
         try {
           const fd = new FormData();
-          fd.append("file", session.uploads.reportFile as File);
+          fd.append("file", session.uploads.reportFile);
+
           const res = await fetch(`${BASE_URL}/extract-report`, {
             method: "POST",
-            body: fd,
+            body: fd
           });
+
           if (!res.ok) throw new Error(`OCR status ${res.status}`);
-          const ocrJson = await res.json();
-          setOCRResult(ocrJson);
+          const data = await res.json();
+
+          setOCRResult(data);
           pushLog("OCR extraction complete — values parsed.");
         } catch (err: any) {
-          pushLog(`OCR extraction failed: ${err?.message ?? err}`);
+          pushLog(`OCR error: ${err.message}`);
         }
       } else {
         pushLog("No blood report uploaded — skipping OCR.");
@@ -56,23 +61,29 @@ export default function ProcessingPage() {
 
       await delay(500);
 
-      // 2) MRI
+      /* -------------------------------------------- */
+      /* 2) MRI Image Model */
+      /* -------------------------------------------- */
       if (session.uploads.mriFile) {
-        pushLog("Uploading MRI scan for image analysis...");
+        pushLog("Uploading MRI for image analysis...");
         setStepIndex(2);
+
         try {
           const fd = new FormData();
-          fd.append("file", session.uploads.mriFile as File);
+          fd.append("file", session.uploads.mriFile);
+
           const res = await fetch(`${BASE_URL}/image`, {
             method: "POST",
-            body: fd,
+            body: fd
           });
+
           if (!res.ok) throw new Error(`MRI status ${res.status}`);
-          const mriJson = await res.json();
-          setMRIResult(mriJson);
-          pushLog("MRI analysis complete — image model returned results.");
+          const data = await res.json();
+
+          setMRIResult(data);
+          pushLog("MRI analysis finished.");
         } catch (err: any) {
-          pushLog(`MRI analysis failed: ${err?.message ?? err}`);
+          pushLog(`MRI error: ${err.message}`);
         }
       } else {
         pushLog("No MRI uploaded — skipping MRI analysis.");
@@ -80,96 +91,136 @@ export default function ProcessingPage() {
 
       await delay(500);
 
-      // 3) Allele
-      const alleleInput = session.alleleInput;
-      if (
-        alleleInput &&
-        (alleleInput.ABETA != null || alleleInput.TAU != null || alleleInput.APVOLUME != null)
-      ) {
+      /* -------------------------------------------- */
+      /* 3) Allele Ensemble Model */
+      /* -------------------------------------------- */
+      const A = session.alleleInput;
+
+      if (A && (A.ABETA != null || A.TAU != null || A.APVOLUME != null)) {
         pushLog("Running allele risk ensemble model...");
         setStepIndex(3);
+
         try {
           const res = await fetch(`${BASE_URL}/alele`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-              ABETA: alleleInput.ABETA,
-              TAU: alleleInput.TAU,
-              MMSE: alleleInput.MMSE ?? session.cognitive.mmse ?? 0,
-              APVOLUME: alleleInput.APVOLUME,
-              GENOTYPE: alleleInput.GENOTYPE ?? "N/A",
-            }),
+              ABETA: A.ABETA,
+              TAU: A.TAU,
+              MMSE: A.MMSE ?? session.cognitive.mmse ?? 0,
+              APVOLUME: A.APVOLUME,
+              GENOTYPE: A.GENOTYPE ?? "N/A"
+            })
           });
+
           if (!res.ok) throw new Error(`Allele status ${res.status}`);
-          const alleleJson = await res.json();
+
+          const out = await res.json();
           setAlleleResult({
-            cn_prob: alleleJson.cn_prob ?? null,
-            risk: alleleJson.risk ?? String(alleleJson),
+            cn_prob: out.cn_prob ?? null,
+            risk: out.risk ?? "Unknown"
           });
-          pushLog("Allele ensemble finished — risk estimated.");
+
+          pushLog("Allele ensemble completed.");
         } catch (err: any) {
-          pushLog(`Allele model failed: ${err?.message ?? err}`);
+          pushLog(`Allele model error: ${err.message}`);
         }
       } else {
-        pushLog("Insufficient allele inputs — skipping allele model.");
+        pushLog("Insufficient allele biomarkers — skipping allele model.");
       }
 
       await delay(600);
 
-      // 4) Base model
-      pushLog("Running primary Alzheimer classifier (base model)...");
+      /* -------------------------------------------- */
+      /* 4) BASE MODEL — FULL CORRECT PAYLOAD */
+      /* -------------------------------------------- */
+
+      pushLog("Running primary Alzheimer classifier...");
       setStepIndex(4);
+
       try {
-        const payload: Record<string, any> = {};
-        payload["PatientID"] = session.id;
-        payload["Age"] = session.demographics.age ?? 0;
-        payload["Gender"] = session.demographics.gender ?? 0;
-        payload["AlcoholConsumption"] = session.demographics.alcoholConsumption ?? 0;
-        payload["PhysicalActivity"] = session.demographics.physicalActivity ?? 0;
-        payload["DietQuality"] = session.demographics.dietQuality ?? 0;
-        payload["SleepQuality"] = session.demographics.sleepQuality ?? 0;
-        if (session.cognitive.mmse != null) payload["MMSE"] = session.cognitive.mmse;
-        if (session.cognitive.functionalAssessment != null)
-          payload["FunctionalAssessment"] = session.cognitive.functionalAssessment;
-        if (session.cognitive.adl != null) payload["ADL"] = session.cognitive.adl;
-        if (session.cognitive.memoryComplaints != null)
-          payload["MemoryComplaints"] = session.cognitive.memoryComplaints;
-        if (session.cognitive.behavioralProblems != null)
-          payload["BehavioralProblems"] = session.cognitive.behavioralProblems;
-        if (session.cognitive.confusion != null) payload["Confusion"] = session.cognitive.confusion;
+        const d = session.demographics;
+        const m = session.medical;
+        const c = session.cognitive;
+
+        const payload = {
+          PatientID: session.id,
+
+          /* Demographics */
+          Age: d.age ?? 0,
+          Gender: d.gender ?? 0,
+          Ethnicity: d.ethnicity ?? 0,
+          EducationLevel: d.educationLevel ?? 0,
+          Smoking: d.smoking ?? 0,
+          AlcoholConsumption: d.alcoholConsumption ?? 0,
+          PhysicalActivity: d.physicalActivity ?? 0,
+          DietQuality: d.dietQuality ?? 0,
+          SleepQuality: d.sleepQuality ?? 0,
+          FamilyHistoryAlzheimers: d.familyHistoryAlzheimers ?? 0,
+
+          /* Medical */
+          CardiovascularDisease: m.cardiovascularDisease ?? 0,
+          Diabetes: m.diabetes ?? 0,
+          Depression: m.depression ?? 0,
+          HeadInjury: m.headInjury ?? 0,
+          Hypertension: m.hypertension ?? 0,
+
+          SystolicBP: m.systolicBP ?? 0,
+          DiastolicBP: m.diastolicBP ?? 0,
+
+          CholesterolTotal: m.cholesterolTotal ?? 0,
+          CholesterolLDL: m.cholesterolLDL ?? 0,
+          CholesterolHDL: m.cholesterolHDL ?? 0,
+          CholesterolTriglycerides: m.cholesterolTriglycerides ?? 0,
+
+          /* Cognitive + Symptoms */
+          MMSE: c.mmse ?? 0,
+          FunctionalAssessment: c.functionalAssessment ?? 0,
+          ADL: c.adl ?? 0,
+          MemoryComplaints: c.memoryComplaints ?? 0,
+          BehavioralProblems: c.behavioralProblems ?? 0,
+          Confusion: c.confusion ?? 0,
+          Disorientation: c.disorientation ?? 0,
+          PersonalityChanges: c.personalityChanges ?? 0,
+          DifficultyCompletingTasks: c.difficultyCompletingTasks ?? 0,
+          Forgetfulness: c.forgetfulness ?? 0
+        };
 
         const res = await fetch(`${BASE_URL}/base`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
+          body: JSON.stringify(payload)
         });
+
         if (!res.ok) throw new Error(`Base status ${res.status}`);
-        const baseJson = await res.json();
-        setBaseModelResult(baseJson.input_used ?? payload, baseJson.prediction ?? "N/A");
+
+        const out = await res.json();
+        setBaseModelResult(out.input_used ?? payload, out.prediction ?? "N/A");
+
         pushLog("Base model completed — primary prediction ready.");
       } catch (err: any) {
-        pushLog(`Base model failed: ${err?.message ?? err}`);
+        pushLog(`Base model error: ${err.message}`);
       }
 
       await delay(600);
 
-      pushLog("Aggregating multimodal predictions and preparing digital twin...");
+      /* -------------------------------------------- */
+      /* 5) Finishing */
+      /* -------------------------------------------- */
+      pushLog("Aggregating multimodal predictions...");
       setStepIndex(5);
-      await delay(900);
+
+      await delay(800);
 
       pushLog("Done.");
       setBusy(false);
-      await delay(800);
 
+      await delay(700);
       if (mounted) router.push("/result");
     }
 
     runPipeline();
-
-    return () => {
-      mounted = false;
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    return () => { mounted = false };
   }, []);
 
   return (

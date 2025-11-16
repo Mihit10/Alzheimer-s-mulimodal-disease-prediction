@@ -16,7 +16,7 @@ export default function Step3({ back }: Props) {
   const cognitive = session.cognitive;
   const storedAllele = session.alleleInput;
 
-  // Local allele state
+  /* ---------------------- Biomarker Local State ---------------------- */
   const [ABETA, setABETA] = useState<number | null>(storedAllele.ABETA ?? null);
   const [TAU, setTAU] = useState<number | null>(storedAllele.TAU ?? null);
   const [APVOLUME, setAPVOLUME] = useState<number | null>(storedAllele.APVOLUME ?? null);
@@ -50,28 +50,29 @@ export default function Step3({ back }: Props) {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-blue-950 text-white p-4 md:p-8 rounded-xl">
       <div className="max-w-6xl mx-auto space-y-10">
+        
         {/* HEADER */}
         <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
           <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">
             Cognitive & Biomarker Inputs
           </h1>
           <p className="text-blue-200 mt-2">
-            Enter cognitive scores and biomarkers. Processing runs in the next step.
+            Enter cognitive scores and clinical symptoms for model processing.
           </p>
         </motion.div>
 
         {/* GRID */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
 
-          {/* LEFT — Cognitive Assessment */}
+          {/* LEFT SECTION */}
           <div className="lg:col-span-2 space-y-8">
 
-            {/* Cognitive Section */}
+            {/* ------------------ Cognitive Section ------------------ */}
             <motion.div className="bg-white/5 p-6 rounded-2xl border border-white/10 backdrop-blur-md">
               <h2 className="text-xl font-semibold mb-4">Cognitive Assessment</h2>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {/* MMSE */}
+
                 <RangeBlock
                   label="MMSE (0–30)"
                   min={0}
@@ -80,7 +81,6 @@ export default function Step3({ back }: Props) {
                   onChange={(v) => updateCognitive({ mmse: v })}
                 />
 
-                {/* Functional Assessment */}
                 <RangeBlock
                   label="Functional Assessment (0–10)"
                   min={0}
@@ -89,7 +89,6 @@ export default function Step3({ back }: Props) {
                   onChange={(v) => updateCognitive({ functionalAssessment: v })}
                 />
 
-                {/* ADL */}
                 <RangeBlock
                   label="ADL (0–10)"
                   min={0}
@@ -97,51 +96,87 @@ export default function Step3({ back }: Props) {
                   value={cognitive.adl ?? 4}
                   onChange={(v) => updateCognitive({ adl: v })}
                 />
+
               </div>
 
-              {/* Symptoms */}
-              <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
-                <EmojiScale
+              {/* ------------------ Symptoms ------------------ */}
+              <h3 className="text-lg font-semibold mt-6 mb-2">Neurological Symptoms (Yes/No)</h3>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+
+                <ToggleBlock
                   label="Memory Complaints"
                   value={cognitive.memoryComplaints ?? 0}
                   onChange={(v) => updateCognitive({ memoryComplaints: v })}
                 />
-                <EmojiScale
+
+                <ToggleBlock
                   label="Behavioral Problems"
                   value={cognitive.behavioralProblems ?? 0}
                   onChange={(v) => updateCognitive({ behavioralProblems: v })}
                 />
-                <EmojiScale
+
+                <ToggleBlock
                   label="Confusion"
                   value={cognitive.confusion ?? 0}
                   onChange={(v) => updateCognitive({ confusion: v })}
                 />
+
+                <ToggleBlock
+                  label="Disorientation"
+                  value={cognitive.disorientation ?? 0}
+                  onChange={(v) => updateCognitive({ disorientation: v })}
+                />
+
+                <ToggleBlock
+                  label="Personality Changes"
+                  value={cognitive.personalityChanges ?? 0}
+                  onChange={(v) => updateCognitive({ personalityChanges: v })}
+                />
+
+                <ToggleBlock
+                  label="Difficulty Completing Tasks"
+                  value={cognitive.difficultyCompletingTasks ?? 0}
+                  onChange={(v) => updateCognitive({ difficultyCompletingTasks: v })}
+                />
+
+                <ToggleBlock
+                  label="Forgetfulness"
+                  value={cognitive.forgetfulness ?? 0}
+                  onChange={(v) => updateCognitive({ forgetfulness: v })}
+                />
+
               </div>
+
             </motion.div>
 
-            {/* Allele Inputs */}
+            {/* ------------------ Biomarkers ------------------ */}
             <motion.div className="bg-white/5 p-6 rounded-2xl border border-white/10 backdrop-blur-md">
               <h2 className="text-xl font-semibold mb-4">Biomarker Inputs</h2>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+
                 <NumberBlock
                   label="ABETA"
                   value={ABETA}
                   onChange={setABETA}
                   placeholder="e.g. 950"
                 />
+
                 <NumberBlock
                   label="TAU"
                   value={TAU}
                   onChange={setTAU}
                   placeholder="e.g. 320"
                 />
+
                 <NumberBlock
                   label="APVOLUME"
                   value={APVOLUME}
                   onChange={setAPVOLUME}
                   placeholder="e.g. 4100"
                 />
+
               </div>
 
               <div className="mt-4">
@@ -149,19 +184,22 @@ export default function Step3({ back }: Props) {
                 <select
                   value={GENOTYPE}
                   onChange={(e) => setGENOTYPE(e.target.value)}
-                  className="w-full mt-2 px-3 py-2 rounded-xl bg-white/5 border border-white/10"
+                  className="w-full mt-2 px-3 py-2 rounded-xl bg-slate-800 border border-white/10 text-white"
                 >
                   {["N/A", "2_2", "2_3", "3_3", "3_4", "4_4"].map((g) => (
-                    <option key={g} value={g}>
+                    <option key={g} value={g} className="text-black">
                       {g}
                     </option>
                   ))}
                 </select>
               </div>
+
+              {error && <div className="text-rose-400 text-sm mt-3">{error}</div>}
+
             </motion.div>
           </div>
 
-          {/* RIGHT Sidebar */}
+          {/* ------------------ Right Sidebar ------------------ */}
           <div className="space-y-6">
             <motion.div className="bg-gradient-to-br from-blue-500/10 to-cyan-500/10 p-5 rounded-2xl border border-blue-400/20">
               <h3 className="text-lg font-semibold mb-3">Review Summary</h3>
@@ -179,10 +217,11 @@ export default function Step3({ back }: Props) {
               </div>
               <div className="text-sm text-white/80 mt-1">Genotype: {GENOTYPE}</div>
 
-              {error && <div className="text-rose-400 text-sm mt-2">{error}</div>}
-
               <div className="flex gap-3 mt-4">
-                <button onClick={back} className="flex-1 px-4 py-3 rounded-xl bg-white/5 border border-white/10">
+                <button
+                  onClick={back}
+                  className="flex-1 px-4 py-3 rounded-xl bg-white/5 border border-white/10"
+                >
                   ← Back
                 </button>
 
@@ -195,9 +234,11 @@ export default function Step3({ back }: Props) {
               </div>
             </motion.div>
           </div>
+
         </div>
       </div>
 
+      {/* STYLES */}
       <style jsx>{`
         .slider {
           height: 6px;
@@ -220,7 +261,7 @@ export default function Step3({ back }: Props) {
 }
 
 /* ------------------------------------------------------- */
-/* COMPONENTS */
+/* INPUT COMPONENTS */
 /* ------------------------------------------------------- */
 
 function RangeBlock({
@@ -274,14 +315,14 @@ function NumberBlock({
         type="number"
         value={value ?? ""}
         onChange={(e) => onChange(e.target.value === "" ? null : Number(e.target.value))}
-        className="w-full mt-2 px-3 py-2 rounded-xl bg-white/5 border border-white/10"
+        className="w-full mt-2 px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-white"
         placeholder={placeholder}
       />
     </div>
   );
 }
 
-function EmojiScale({
+function ToggleBlock({
   label,
   value,
   onChange,
@@ -290,34 +331,24 @@ function EmojiScale({
   value: number;
   onChange: (v: number) => void;
 }) {
-  const list = [
-    { v: 0, e: "🙂" },
-    { v: 2, e: "😐" },
-    { v: 4, e: "😕" },
-    { v: 6, e: "😟" },
-    { v: 8, e: "😣" },
-    { v: 10, e: "😩" },
-  ];
-
   return (
     <div className="p-4 bg-white/5 rounded-xl border border-white/10">
       <div className="flex justify-between items-center mb-2">
         <span className="text-sm text-blue-200">{label}</span>
-        <span className="font-semibold">{value}</span>
+        <span className="font-semibold">{value === 1 ? "Yes" : "No"}</span>
       </div>
+
       <div className="flex gap-2">
-        {list.map((opt) => (
-          <motion.button
-            key={opt.v}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={() => onChange(opt.v)}
-            className={`flex-1 py-3 rounded-xl ${
-              value === opt.v ? "bg-gradient-to-r from-blue-600 to-cyan-600" : "bg-white/5"
+        {[0, 1].map((opt) => (
+          <button
+            key={opt}
+            onClick={() => onChange(opt)}
+            className={`flex-1 py-2 rounded-xl ${
+              value === opt ? "bg-gradient-to-r from-blue-600 to-cyan-600" : "bg-white/5"
             }`}
           >
-            <div className="text-lg">{opt.e}</div>
-          </motion.button>
+            {opt === 1 ? "Yes" : "No"}
+          </button>
         ))}
       </div>
     </div>
