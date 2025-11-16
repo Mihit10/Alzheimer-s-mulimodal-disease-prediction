@@ -1,7 +1,9 @@
-from fastapi import FastAPI, UploadFile, File,HTTPException
+from fastapi import FastAPI, UploadFile, File, HTTPException, Request, Body
 from .models.input import PatientInput
 from ml.image_model.final_run import predict_image
 from ml.alele_model.final_run import predict_patient_risk 
+from ml.base_model.using_model import predict_alzheimer
+from ml.base_model.using_model import sample_patient
 from ml.ocr.final_run import MedicalBloodReportExtractor
 from PIL import Image
 import io
@@ -44,3 +46,22 @@ async def extract_report(file: UploadFile = File(...)):
     bytes_data = await file.read()
     result = extractor.extract_from_file(bytes_data)
     return result
+
+@app.post("/base")
+async def predict(patient_data: dict = Body(...)):
+    patient = sample_patient.copy()
+
+    # Override only what user sends
+    for key, value in patient_data.items():
+        if key in patient:
+            try:
+                patient[key] = float(value) if '.' in str(value) else int(value)
+            except:
+                patient[key] = value
+
+    prediction = predict_alzheimer(patient)
+
+    return {
+        "input_used": patient,
+        "prediction": prediction
+    }

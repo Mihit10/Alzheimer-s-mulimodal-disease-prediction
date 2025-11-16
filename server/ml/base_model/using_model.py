@@ -1,14 +1,19 @@
 import pandas as pd
 import joblib
+import os
+
+
+BASE_DIR = os.path.dirname(__file__)
 
 # -------------------------------------------
 # 1. Load Model + Saved Scalers
 # -------------------------------------------
-model = joblib.load("catboost_alzheimer_model.pkl")
-minmax = joblib.load("minmax.pkl")
-standard = joblib.load("standard.pkl")
+model = joblib.load(f"{BASE_DIR}/catboost_alzheimer_model.pkl")
+minmax = joblib.load(f"{BASE_DIR}/minmax.pkl")
+standard = joblib.load(f"{BASE_DIR}/standard.pkl")
 
-print("Model and scalers loaded successfully!")
+
+# print("Model and scalers loaded successfully!")
 
 # -------------------------------------------
 # 2. Columns that were scaled
@@ -80,5 +85,5 @@ sample_patient = {
 # -------------------------------------------
 # 5. Run Prediction
 # -------------------------------------------
-result = predict_alzheimer(sample_patient)
-print("Prediction:", result)
+# result = predict_alzheimer(sample_patient)
+# print("Prediction:", result)
