@@ -7,10 +7,19 @@ from ml.base_model.using_model import sample_patient
 from ml.ocr.final_run import MedicalBloodReportExtractor
 from PIL import Image
 import io
+from fastapi.middleware.cors import CORSMiddleware
 
 extractor = MedicalBloodReportExtractor()
 
 app = FastAPI()
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],   # or put "http://localhost:5173" if you want restricted access
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 
 @app.post("/alele")
 def predict(data: PatientInput):
