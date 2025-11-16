@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { usePatientStore } from "../store/patientStore";
 
@@ -15,7 +15,7 @@ export default function Step2({ next, back }: Props) {
   const mriInputRef = useRef<HTMLInputElement>(null);
   const reportInputRef = useRef<HTMLInputElement>(null);
 
-  /* ---------------------- Handlers (NO BACKEND CALLS) ---------------------- */
+  /* ---------------------- FILE UPLOAD HANDLERS ---------------------- */
 
   const handleMRIUpload = (file: File) => {
     updateUploads({ mriFile: file });
@@ -25,7 +25,7 @@ export default function Step2({ next, back }: Props) {
     updateUploads({ reportFile: file });
   };
 
-  /* ---------------------- Reusable Components ---------------------- */
+  /* ---------------------- FILE DROPZONE ---------------------- */
 
   const FileDropZone = ({
     label,
@@ -44,8 +44,8 @@ export default function Step2({ next, back }: Props) {
       whileHover={{ scale: 1.02 }}
       className="p-8 border-2 border-dashed rounded-3xl text-center cursor-pointer bg-white/5 border-white/20 hover:border-blue-400/40 hover:bg-white/10 transition-all"
       onClick={onClick}
-      onDragOver={(e) => e.preventDefault()}
-      onDrop={(e) => {
+      onDragOver={(e: React.DragEvent) => e.preventDefault()}
+      onDrop={(e: React.DragEvent) => {
         e.preventDefault();
         if (e.dataTransfer.files[0]) onDrop(e.dataTransfer.files[0]);
       }}
@@ -65,7 +65,7 @@ export default function Step2({ next, back }: Props) {
     </motion.div>
   );
 
-  /* ---------------------- Medical History Toggle ---------------------- */
+  /* ---------------------- YES/NO MEDICAL TOGGLE ---------------------- */
 
   const MedicalToggle = ({
     label,
@@ -97,7 +97,51 @@ export default function Step2({ next, back }: Props) {
     </div>
   );
 
-  /* ---------------------- Medical Items List ---------------------- */
+  /* ---------------------- FIXED NUMBER INPUT (NO CURSOR JUMP) ---------------------- */
+
+  const NumberInput = ({
+  label,
+  keyName,
+  value,
+  min,
+  max,
+}: {
+  label: string;
+  keyName: keyof typeof session.medical;
+  value: number | null;
+  min?: number;
+  max?: number;
+}) => {
+  const [local, setLocal] = useState<string>(value?.toString() ?? "");
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    setLocal(val); // controls UI 100% smoothly — FIXES CURSOR
+
+    if (val === "") {
+      updateMedical({ [keyName]: null });
+    } else {
+      updateMedical({ [keyName]: Number(val) });
+    }
+  };
+
+  return (
+    <div className="space-y-2">
+      <label className="text-blue-100">{label}</label>
+      <input
+        type="number"
+        value={local}
+        min={min}
+        max={max}
+        onChange={handleChange}
+        className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white"
+      />
+    </div>
+  );
+};
+
+
+  /* ---------------------- MEDICAL HISTORY ITEMS ---------------------- */
 
   const medicalItems = [
     { key: "cardiovascularDisease", label: "Cardiovascular Disease" },
@@ -106,6 +150,8 @@ export default function Step2({ next, back }: Props) {
     { key: "headInjury", label: "History of Head Injury" },
     { key: "hypertension", label: "Hypertension" },
   ] as const;
+
+  /* ---------------------- UI ---------------------- */
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-blue-950 text-white p-4 md:p-8 rounded-xl">
@@ -135,7 +181,7 @@ export default function Step2({ next, back }: Props) {
         {/* GRID */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
 
-          {/* LEFT — MRI & REPORT */}
+          {/* LEFT — UPLOADS */}
           <div>
             <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">🧠 MRI Scan</h2>
 
@@ -152,7 +198,7 @@ export default function Step2({ next, back }: Props) {
               accept="image/*"
               className="hidden"
               ref={mriInputRef}
-              onChange={(e) =>
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                 e.target.files && handleMRIUpload(e.target.files[0])
               }
             />
@@ -172,17 +218,16 @@ export default function Step2({ next, back }: Props) {
               accept="image/*,application/pdf"
               className="hidden"
               ref={reportInputRef}
-              onChange={(e) =>
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                 e.target.files && handleReportUpload(e.target.files[0])
               }
             />
           </div>
 
-          {/* RIGHT — MEDICAL HISTORY */}
-          <div>
-            <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
-              ❤️ Medical Background
-            </h2>
+          {/* RIGHT — MEDICAL HISTORY & CLINICAL DATA */}
+          <div className="space-y-8">
+
+            <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">❤️ Medical Background</h2>
 
             <div className="space-y-4">
               {medicalItems.map((item) => (
@@ -193,6 +238,59 @@ export default function Step2({ next, back }: Props) {
                   value={session.medical[item.key]}
                 />
               ))}
+            </div>
+
+            {/* CLINICAL MEASUREMENTS */}
+            <h2 className="text-xl font-semibold mt-8 mb-4 flex items-center gap-2">📈 Clinical Measurements</h2>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <NumberInput
+                label="Systolic BP (90–180)"
+                keyName="systolicBP"
+                value={session.medical.systolicBP}
+                min={90}
+                max={180}
+              />
+
+              <NumberInput
+                label="Diastolic BP (60–120)"
+                keyName="diastolicBP"
+                value={session.medical.diastolicBP}
+                min={60}
+                max={120}
+              />
+
+              <NumberInput
+                label="Total Cholesterol (150–300)"
+                keyName="cholesterolTotal"
+                value={session.medical.cholesterolTotal}
+                min={150}
+                max={300}
+              />
+
+              <NumberInput
+                label="LDL (50–200)"
+                keyName="cholesterolLDL"
+                value={session.medical.cholesterolLDL}
+                min={50}
+                max={200}
+              />
+
+              <NumberInput
+                label="HDL (20–100)"
+                keyName="cholesterolHDL"
+                value={session.medical.cholesterolHDL}
+                min={20}
+                max={100}
+              />
+
+              <NumberInput
+                label="Triglycerides (50–400)"
+                keyName="cholesterolTriglycerides"
+                value={session.medical.cholesterolTriglycerides}
+                min={50}
+                max={400}
+              />
             </div>
           </div>
         </div>

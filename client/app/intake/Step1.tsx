@@ -14,9 +14,9 @@ export default function Step1({ next }: Props) {
 
   const [hoveredSlider, setHoveredSlider] = useState<string | null>(null);
 
-  // -------------------------------
-  // EDUCATION OPTIONS
-  // -------------------------------
+  /* ------------------------------- */
+  /* EDUCATION OPTIONS */
+  /* ------------------------------- */
   const educationLevels = [
     { id: 0, label: "No Formal Education" },
     { id: 1, label: "Schooling (10th/12th)" },
@@ -24,9 +24,9 @@ export default function Step1({ next }: Props) {
     { id: 3, label: "Postgraduate / Higher" },
   ];
 
-  // -------------------------------
-  // Lifestyle sliders
-  // -------------------------------
+  /* ------------------------------- */
+  /* Lifestyle sliders */
+  /* ------------------------------- */
   const lifestyleMetrics: {
     id: keyof Demographics;
     title: string;
@@ -79,20 +79,23 @@ export default function Step1({ next }: Props) {
     },
   ];
 
-  // -------------------------------
-  // Utility
-  // -------------------------------
   function getLabel(metric: (typeof lifestyleMetrics)[0], value: number) {
-    const idx = Math.floor(((value - metric.min) / (metric.max - metric.min)) * (metric.labels.length - 1));
+    const idx = Math.floor(
+      ((value - metric.min) / (metric.max - metric.min)) *
+        (metric.labels.length - 1)
+    );
     return metric.labels[Math.max(0, Math.min(idx, metric.labels.length - 1))];
   }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-blue-950 text-white p-4 md:p-8 rounded-xl">
       <div className="max-w-7xl mx-auto">
-
         {/* HEADER */}
-        <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="text-center mb-12">
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-center mb-12"
+        >
           <div className="inline-block mb-4">
             <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-2xl flex items-center justify-center text-3xl shadow-lg shadow-blue-500/50">
               🧠
@@ -109,11 +112,9 @@ export default function Step1({ next }: Props) {
         </motion.div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-
-          {/* LEFT PART – FORM */}
+          {/* LEFT FORM */}
           <div className="lg:col-span-2 space-y-8">
-
-            {/* BASIC INFO CARD */}
+            {/* BASIC INFO */}
             <motion.div
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
@@ -124,15 +125,18 @@ export default function Step1({ next }: Props) {
               </h2>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-
                 {/* NAME */}
                 <div className="space-y-3">
-                  <label className="text-lg font-medium text-blue-100">Full Name</label>
+                  <label className="text-lg font-medium text-blue-100">
+                    Full Name
+                  </label>
                   <input
                     type="text"
                     placeholder="Enter patient's name"
                     value={d.name ?? ""}
-                    onChange={(e) => updateDemographics({ name: e.target.value })}
+                    onChange={(e) =>
+                      updateDemographics({ name: e.target.value })
+                    }
                     className="w-full px-4 py-3 rounded-xl bg-white/10 border border-white/20 text-white placeholder-blue-200/40"
                   />
                 </div>
@@ -140,13 +144,17 @@ export default function Step1({ next }: Props) {
                 {/* AGE */}
                 <div className="space-y-3">
                   <div className="flex justify-between items-center">
-                    <label className="text-lg font-medium text-blue-100">Age</label>
+                    <label className="text-lg font-medium text-blue-100">
+                      Age
+                    </label>
                     <input
                       type="number"
                       min={18}
                       max={100}
                       value={d.age ?? 18}
-                      onChange={(e) => updateDemographics({ age: Number(e.target.value) })}
+                      onChange={(e) =>
+                        updateDemographics({ age: Number(e.target.value) })
+                      }
                       className="w-20 px-3 py-2 rounded-xl text-center bg-blue-500/20 border border-blue-400 text-blue-200 font-bold"
                     />
                   </div>
@@ -156,7 +164,9 @@ export default function Step1({ next }: Props) {
                     min="18"
                     max="100"
                     value={d.age ?? 18}
-                    onChange={(e) => updateDemographics({ age: Number(e.target.value) })}
+                    onChange={(e) =>
+                      updateDemographics({ age: Number(e.target.value) })
+                    }
                     className="w-full slider"
                   />
 
@@ -169,7 +179,9 @@ export default function Step1({ next }: Props) {
 
                 {/* GENDER */}
                 <div className="space-y-3">
-                  <label className="text-lg font-medium text-blue-100">Gender</label>
+                  <label className="text-lg font-medium text-blue-100">
+                    Gender
+                  </label>
 
                   <div className="flex gap-3">
                     {[
@@ -180,7 +192,9 @@ export default function Step1({ next }: Props) {
                         key={g.id}
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
-                        onClick={() => updateDemographics({ gender: g.id })}
+                        onClick={() =>
+                          updateDemographics({ gender: g.id })
+                        }
                         className={`flex-1 px-6 py-4 rounded-2xl border-2 transition-all
                           ${
                             d.gender === g.id
@@ -195,13 +209,19 @@ export default function Step1({ next }: Props) {
                   </div>
                 </div>
 
-                {/* EDUCATION LEVEL */}
+                {/* EDUCATION */}
                 <div className="space-y-3">
-                  <label className="text-lg font-medium text-blue-100">Education Level</label>
+                  <label className="text-lg font-medium text-blue-100">
+                    Education Level
+                  </label>
 
                   <select
                     value={d.educationLevel ?? ""}
-                    onChange={(e) => updateDemographics({ educationLevel: Number(e.target.value) })}
+                    onChange={(e) =>
+                      updateDemographics({
+                        educationLevel: Number(e.target.value),
+                      })
+                    }
                     className="w-full px-4 py-3 rounded-xl bg-white/10 border border-white/20 text-white"
                   >
                     <option value="" disabled>
@@ -215,6 +235,65 @@ export default function Step1({ next }: Props) {
                   </select>
                 </div>
 
+                {/* ETHNICITY */}
+                <div className="space-y-3">
+                  <label className="text-lg font-medium text-blue-100">
+                    Ethnicity
+                  </label>
+
+                  <select
+                    value={d.ethnicity ?? ""}
+                    onChange={(e) =>
+                      updateDemographics({
+                        ethnicity: Number(e.target.value),
+                      })
+                    }
+                    className="w-full px-4 py-3 rounded-xl bg-white/10 border border-white/20 text-white"
+                  >
+                    <option value="" disabled>
+                      Select ethnicity
+                    </option>
+                    <option className="text-black" value={0}>
+                      Caucasian
+                    </option>
+                    <option className="text-black" value={1}>
+                      African American
+                    </option>
+                    <option className="text-black" value={2}>
+                      Asian
+                    </option>
+                    <option className="text-black" value={3}>
+                      Other
+                    </option>
+                  </select>
+                </div>
+
+                {/* DOCTOR-IN-CHARGE */}
+                <div className="space-y-3">
+                  <label className="text-lg font-medium text-blue-100">
+                    Doctor In Charge
+                  </label>
+
+                  <select
+                    value={d.doctorInCharge ?? ""}
+                    onChange={(e) =>
+                      updateDemographics({
+                        doctorInCharge: e.target.value,
+                      })
+                    }
+                    className="w-full px-4 py-3 rounded-xl bg-white/10 border border-white/20 text-white"
+                  >
+                    <option value="" disabled>
+                      Select doctor
+                    </option>
+                    {["Dr. A", "Dr. B", "Dr. C", "Dr. D"].map((doc) => (
+                      <option key={doc} value={doc} className="text-black">
+                        {doc}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
                 {/* HEIGHT */}
                 <div className="space-y-3">
                   <label className="text-lg font-medium">Height (cm)</label>
@@ -223,7 +302,11 @@ export default function Step1({ next }: Props) {
                     min={80}
                     max={250}
                     value={d.height ?? ""}
-                    onChange={(e) => updateDemographics({ height: Number(e.target.value) })}
+                    onChange={(e) =>
+                      updateDemographics({
+                        height: Number(e.target.value),
+                      })
+                    }
                     className="w-full px-4 py-3 rounded-xl bg-white/10 border border-white/20 text-white"
                   />
                 </div>
@@ -236,16 +319,20 @@ export default function Step1({ next }: Props) {
                     min={20}
                     max={200}
                     value={d.weight ?? ""}
-                    onChange={(e) => updateDemographics({ weight: Number(e.target.value) })}
+                    onChange={(e) =>
+                      updateDemographics({
+                        weight: Number(e.target.value),
+                      })
+                    }
                     className="w-full px-4 py-3 rounded-xl bg-white/10 border border-white/20 text-white"
                   />
                 </div>
 
-                {/* BMI DISPLAY */}
+                {/* BMI */}
                 <div className="space-y-3">
                   <label className="text-lg font-medium">BMI</label>
                   <div className="px-4 py-3 rounded-xl bg-blue-500/10 border border-blue-400/30 text-blue-300 font-bold">
-                    {d.BMI ? `${d.BMI}` : "Auto-calculated"}
+                    {d.bmi ? `${d.bmi}` : "Auto-calculated"}
                   </div>
                 </div>
 
@@ -257,7 +344,9 @@ export default function Step1({ next }: Props) {
                     {[0, 1].map((value) => (
                       <button
                         key={value}
-                        onClick={() => updateDemographics({ smoking: value })}
+                        onClick={() =>
+                          updateDemographics({ smoking: value })
+                        }
                         className={`flex-1 py-3 rounded-xl border ${
                           d.smoking === value
                             ? "border-green-400 bg-green-600/30"
@@ -272,13 +361,19 @@ export default function Step1({ next }: Props) {
 
                 {/* FAMILY HISTORY */}
                 <div className="space-y-3">
-                  <label className="text-lg font-medium">Family History of Alzheimer's</label>
+                  <label className="text-lg font-medium">
+                    Family History of Alzheimer's
+                  </label>
 
                   <div className="flex gap-3">
                     {[0, 1].map((value) => (
                       <button
                         key={value}
-                        onClick={() => updateDemographics({ familyHistoryAlzheimers: value })}
+                        onClick={() =>
+                          updateDemographics({
+                            familyHistoryAlzheimers: value,
+                          })
+                        }
                         className={`flex-1 py-3 rounded-xl border ${
                           d.familyHistoryAlzheimers === value
                             ? "border-purple-400 bg-purple-600/30"
@@ -290,11 +385,10 @@ export default function Step1({ next }: Props) {
                     ))}
                   </div>
                 </div>
-
               </div>
             </motion.div>
 
-            {/* LIFESTYLE SECTION */}
+            {/* LIFESTYLE */}
             <motion.div
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
@@ -312,13 +406,21 @@ export default function Step1({ next }: Props) {
                       <div className="flex items-center gap-3">
                         <span className="text-2xl">{metric.icon}</span>
                         <div>
-                          <div className="font-semibold">{metric.title}</div>
-                          <div className="text-sm text-blue-200/60">{metric.description}</div>
+                          <div className="font-semibold">
+                            {metric.title}
+                          </div>
+                          <div className="text-sm text-blue-200/60">
+                            {metric.description}
+                          </div>
                         </div>
                       </div>
 
                       <div className="px-4 py-2 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-500 font-bold shadow-lg">
-                        {getLabel(metric, d[metric.id] ?? metric.min)}
+                        {getLabel(
+                          metric,
+                          d[metric.id as keyof Demographics] ??
+                            metric.min
+                        )}
                       </div>
                     </div>
 
@@ -327,16 +429,20 @@ export default function Step1({ next }: Props) {
                       type="range"
                       min={metric.min}
                       max={metric.max}
-                      value={d[metric.id] ?? metric.min}
+                      value={
+                        d[metric.id as keyof Demographics] ??
+                        metric.min
+                      }
                       onChange={(e) =>
-                        updateDemographics({
-                          [metric.id]: Number(e.target.value),
-                        })
+                        updateDemographics(
+                          {
+                            [metric.id]: Number(e.target.value),
+                          } as Partial<Demographics>
+                        )
                       }
                       className="w-full slider"
                     />
 
-                    {/* TICKS */}
                     <div className="flex justify-between px-1 text-xs text-blue-300/50">
                       {metric.labels.map((l) => (
                         <span key={l}>{l}</span>
@@ -356,37 +462,88 @@ export default function Step1({ next }: Props) {
             </button>
           </div>
 
-          {/* RIGHT SUMMARY PANEL */}
+          {/* SUMMARY PANEL */}
           <div className="lg:sticky lg:top-8 h-fit">
             <div className="bg-gradient-to-br from-blue-500/10 to-cyan-500/10 backdrop-blur-xl rounded-3xl p-6 border border-blue-400/30 shadow-2xl">
-              <h3 className="text-xl font-semibold mb-6 flex items-center gap-2">📋 Summary</h3>
+              <h3 className="text-xl font-semibold mb-6 flex items-center gap-2">
+                📋 Summary
+              </h3>
 
               <div className="space-y-4 text-blue-200 text-sm">
                 <Summary label="Name" value={d.name} />
                 <Summary label="Age" value={d.age?.toString()} />
-                <Summary label="Gender" value={d.gender === 0 ? "Male" : d.gender === 1 ? "Female" : ""} />
-                <Summary label="Education" value={
-                  educationLevels.find((x) => x.id === d.educationLevel)?.label
-                }/>
-                <Summary label="Height" value={d.height ? `${d.height} cm` : ""} />
-                <Summary label="Weight" value={d.weight ? `${d.weight} kg` : ""} />
-                <Summary label="BMI" value={d.BMI?.toString()} />
+                <Summary
+                  label="Gender"
+                  value={
+                    d.gender === 0
+                      ? "Male"
+                      : d.gender === 1
+                      ? "Female"
+                      : ""
+                  }
+                />
+                <Summary
+                  label="Education"
+                  value={
+                    educationLevels.find(
+                      (x) => x.id === d.educationLevel
+                    )?.label
+                  }
+                />
+                <Summary
+                  label="Height"
+                  value={d.height ? `${d.height} cm` : ""}
+                />
+                <Summary
+                  label="Weight"
+                  value={d.weight ? `${d.weight} kg` : ""}
+                />
+                <Summary label="BMI" value={d.bmi?.toString()} />
 
                 <div className="h-px bg-white/20 my-4" />
 
-                <Summary label="Smoking" value={d.smoking === 1 ? "Yes" : d.smoking === 0 ? "No" : ""} />
-                <Summary label="Family History AD" value={d.familyHistoryAlzheimers === 1 ? "Yes" : d.familyHistoryAlzheimers === 0 ? "No" : ""} />
+                <Summary
+                  label="Smoking"
+                  value={
+                    d.smoking === 1
+                      ? "Yes"
+                      : d.smoking === 0
+                      ? "No"
+                      : ""
+                  }
+                />
 
-                <Summary label="Alcohol" value={d.alcoholConsumption?.toString()} />
-                <Summary label="Physical Activity" value={d.physicalActivity?.toString()} />
-                <Summary label="Diet Quality" value={d.dietQuality?.toString()} />
-                <Summary label="Sleep Quality" value={d.sleepQuality?.toString()} />
+                <Summary
+                  label="Family History AD"
+                  value={
+                    d.familyHistoryAlzheimers === 1
+                      ? "Yes"
+                      : d.familyHistoryAlzheimers === 0
+                      ? "No"
+                      : ""
+                  }
+                />
+
+                <Summary
+                  label="Alcohol"
+                  value={d.alcoholConsumption?.toString()}
+                />
+                <Summary
+                  label="Physical Activity"
+                  value={d.physicalActivity?.toString()}
+                />
+                <Summary
+                  label="Diet Quality"
+                  value={d.dietQuality?.toString()}
+                />
+                <Summary
+                  label="Sleep Quality"
+                  value={d.sleepQuality?.toString()}
+                />
               </div>
             </div>
           </div>
-
         </div>
-
       </div>
 
       {/* SLIDER STYLE */}

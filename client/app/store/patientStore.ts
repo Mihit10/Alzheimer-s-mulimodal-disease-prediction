@@ -4,44 +4,65 @@
 import { create } from "zustand";
 import { nanoid } from "nanoid";
 
-/* ---------------------- INTERFACES ---------------------- */
+/* ----------------------------------------------------------
+   INTERFACES
+---------------------------------------------------------- */
 
-interface Demographics {
+export interface Demographics {
   name: string | null;
   age: number | null;
-  gender: number | null; // 0=Male,1=Female
-  educationLevel: number | null;
+  gender: number | null; // 0=Male, 1=Female
+
+  ethnicity: number | null; // 0=Caucasian,1=African American,2=Asian,3=Other
+  educationLevel: number | null; // 0=None,1=High School,2=Bachelor's,3=Higher
+
   height: number | null;
   weight: number | null;
   bmi: number | null;
 
-  smoking: number | null;
-  alcoholConsumption: number | null;
-  physicalActivity: number | null;
-  dietQuality: number | null;
-  sleepQuality: number | null;
+  smoking: number | null; // 0/1
+  alcoholConsumption: number | null; // 0–20
+  physicalActivity: number | null; // 0–10
+  dietQuality: number | null; // 0–10
+  sleepQuality: number | null; // 4–10
 
-  familyHistoryAlzheimers: number | null;
+  familyHistoryAlzheimers: number | null; // 0/1
+
+  doctorInCharge: string | null; // For completeness ("XXXConfid")
 }
 
-interface Medical {
+export interface Medical {
   cardiovascularDisease: number | null;
   diabetes: number | null;
   depression: number | null;
   headInjury: number | null;
   hypertension: number | null;
+
+  // Clinical Measurements
+  systolicBP: number | null;
+  diastolicBP: number | null;
+  cholesterolTotal: number | null;
+  cholesterolLDL: number | null;
+  cholesterolHDL: number | null;
+  cholesterolTriglycerides: number | null;
 }
 
-interface Cognitive {
+export interface Cognitive {
   mmse: number | null;
   functionalAssessment: number | null;
   adl: number | null;
+
   memoryComplaints: number | null;
   behavioralProblems: number | null;
   confusion: number | null;
+
+  disorientation: number | null;
+  personalityChanges: number | null;
+  difficultyCompletingTasks: number | null;
+  forgetfulness: number | null;
 }
 
-interface AlleleInput {
+export interface AlleleInput {
   ABETA: number | null;
   TAU: number | null;
   MMSE: number | null;
@@ -49,7 +70,7 @@ interface AlleleInput {
   GENOTYPE: string | null;
 }
 
-interface PatientSession {
+export interface PatientSession {
   id: string;
   timestamp: string;
 
@@ -73,27 +94,28 @@ interface PatientSession {
   alleleInput: AlleleInput;
 
   alleleResult: {
-    cn_prob: number | null;
-    risk: string | null;
-  };
-}
+  predictedClass: string | null;
+  probability: number | null;
+  riskCategory: string | null;
+};
 
-/* ---------------------- STORE INTERFACE ---------------------- */
+}
 
 interface StoreState {
   session: PatientSession;
 
   updateDemographics: (data: Partial<Demographics>) => void;
   updateMedical: (data: Partial<Medical>) => void;
-
   updateCognitive: (data: Partial<Cognitive>) => void;
-
-  updateUploads: (
-    data: Partial<PatientSession["uploads"]>
-  ) => void;
+  updateUploads: (data: Partial<PatientSession["uploads"]>) => void;
 
   setAlleleInput: (data: Partial<AlleleInput>) => void;
-  setAlleleResult: (res: { cn_prob: number | null; risk: string | null }) => void;
+  setAlleleResult: (res: Partial<{
+    predictedClass: string;
+    probability: number | null;
+    riskCategory: string;
+  }>) => void;
+
 
   setMRIResult: (res: any) => void;
   setOCRResult: (res: any) => void;
@@ -103,38 +125,82 @@ interface StoreState {
   resetSession: () => void;
 }
 
-/* ---------------------- STORE IMPLEMENTATION ---------------------- */
+/* ----------------------------------------------------------
+   DEFAULT SESSION OBJECT
+---------------------------------------------------------- */
+
+const defaultCognitive: Cognitive = {
+  mmse: null,
+  functionalAssessment: null,
+  adl: null,
+
+  memoryComplaints: null,
+  behavioralProblems: null,
+  confusion: null,
+
+  disorientation: null,
+  personalityChanges: null,
+  difficultyCompletingTasks: null,
+  forgetfulness: null,
+};
+
+const defaultDemographics: Demographics = {
+  name: null,
+  age: null,
+  gender: null,
+  ethnicity: null,
+  educationLevel: null,
+
+  height: null,
+  weight: null,
+  bmi: null,
+
+  smoking: null,
+  alcoholConsumption: null,
+  physicalActivity: null,
+  dietQuality: null,
+  sleepQuality: null,
+
+  familyHistoryAlzheimers: null,
+  doctorInCharge: "XXXConfid",
+};
+
+const defaultMedical: Medical = {
+  cardiovascularDisease: null,
+  diabetes: null,
+  depression: null,
+  headInjury: null,
+  hypertension: null,
+
+  systolicBP: null,
+  diastolicBP: null,
+  cholesterolTotal: null,
+  cholesterolLDL: null,
+  cholesterolHDL: null,
+  cholesterolTriglycerides: null,
+};
+
+const defaultAllele: AlleleInput = {
+  ABETA: null,
+  TAU: null,
+  MMSE: null,
+  APVOLUME: null,
+  GENOTYPE: null,
+};
+
+/* ----------------------------------------------------------
+   ZUSTAND STORE
+---------------------------------------------------------- */
 
 export const usePatientStore = create<StoreState>((set) => ({
   session: {
     id: nanoid(),
     timestamp: new Date().toISOString(),
 
-    demographics: {
-      name: null,
-      age: null,
-      gender: null,
-      educationLevel: null,
-      height: null,
-      weight: null,
-      bmi: null,
-
-      smoking: null,
-      alcoholConsumption: null,
-      physicalActivity: null,
-      dietQuality: null,
-      sleepQuality: null,
-
-      familyHistoryAlzheimers: null,
-    },
-
-    medical: {
-      cardiovascularDisease: null,
-      diabetes: null,
-      depression: null,
-      headInjury: null,
-      hypertension: null,
-    },
+    demographics: { ...defaultDemographics },
+    medical: { ...defaultMedical },
+    cognitive: { ...defaultCognitive },
+    alleleInput: { ...defaultAllele },
 
     uploads: {
       mriFile: null,
@@ -143,35 +209,21 @@ export const usePatientStore = create<StoreState>((set) => ({
       ocrResult: null,
     },
 
-    cognitive: {
-      mmse: null,
-      functionalAssessment: null,
-      adl: null,
-      memoryComplaints: null,
-      behavioralProblems: null,
-      confusion: null,
-    },
-
     baseModel: {
       input_used: null,
       prediction: null,
     },
 
-    alleleInput: {
-      ABETA: null,
-      TAU: null,
-      MMSE: null,
-      APVOLUME: null,
-      GENOTYPE: null,
+    alleleResult: {
+      predictedClass: null,
+      probability: null,
+      riskCategory: null,
     },
 
-    alleleResult: {
-      cn_prob: null,
-      risk: null,
-    },
+
   },
 
-  /* ------------------ DEMOGRAPHICS ------------------ */
+  /* ------------------ UPDATE DEMOGRAPHICS ------------------ */
   updateDemographics: (data: Partial<Demographics>) =>
     set((state) => {
       const newDemo = { ...state.session.demographics, ...data };
@@ -190,7 +242,7 @@ export const usePatientStore = create<StoreState>((set) => ({
       };
     }),
 
-  /* ------------------ MEDICAL ------------------ */
+  /* ------------------ UPDATE MEDICAL ------------------ */
   updateMedical: (data: Partial<Medical>) =>
     set((state) => ({
       session: {
@@ -199,7 +251,7 @@ export const usePatientStore = create<StoreState>((set) => ({
       },
     })),
 
-  /* ------------------ COGNITIVE ------------------ */
+  /* ------------------ UPDATE COGNITIVE ------------------ */
   updateCognitive: (data: Partial<Cognitive>) =>
     set((state) => ({
       session: {
@@ -242,16 +294,20 @@ export const usePatientStore = create<StoreState>((set) => ({
       },
     })),
 
-  setAlleleResult: (res: { cn_prob: number | null; risk: string | null }) =>
-    set((state) => ({
-      session: {
-        ...state.session,
-        alleleResult: res,
+  setAlleleResult: (res) =>
+  set((state) => ({
+    session: {
+      ...state.session,
+      alleleResult: {
+        ...state.session.alleleResult,
+        ...res,
       },
-    })),
+    },
+  })),
+
 
   /* ------------------ BASE MODEL ------------------ */
-  setBaseModelResult: (input: any, prediction: string) =>
+  setBaseModelResult: (input, prediction) =>
     set((state) => ({
       session: {
         ...state.session,
@@ -259,70 +315,30 @@ export const usePatientStore = create<StoreState>((set) => ({
       },
     })),
 
-  /* ------------------ RESET SESSION ------------------ */
+  /* ------------------ RESET EVERYTHING ------------------ */
   resetSession: () =>
     set({
       session: {
         id: nanoid(),
         timestamp: new Date().toISOString(),
-
-        demographics: {
-          name: null,
-          age: null,
-          gender: null,
-          educationLevel: null,
-          height: null,
-          weight: null,
-          bmi: null,
-          smoking: null,
-          alcoholConsumption: null,
-          physicalActivity: null,
-          dietQuality: null,
-          sleepQuality: null,
-          familyHistoryAlzheimers: null,
-        },
-
-        medical: {
-          cardiovascularDisease: null,
-          diabetes: null,
-          depression: null,
-          headInjury: null,
-          hypertension: null,
-        },
-
+        demographics: { ...defaultDemographics },
+        medical: { ...defaultMedical },
+        cognitive: { ...defaultCognitive },
         uploads: {
           mriFile: null,
           reportFile: null,
           mriResult: null,
           ocrResult: null,
         },
-
-        cognitive: {
-          mmse: null,
-          functionalAssessment: null,
-          adl: null,
-          memoryComplaints: null,
-          behavioralProblems: null,
-          confusion: null,
-        },
-
-        baseModel: {
-          input_used: null,
-          prediction: null,
-        },
-
-        alleleInput: {
-          ABETA: null,
-          TAU: null,
-          MMSE: null,
-          APVOLUME: null,
-          GENOTYPE: null,
-        },
-
+        baseModel: { input_used: null, prediction: null },
+        alleleInput: { ...defaultAllele },
         alleleResult: {
-          cn_prob: null,
-          risk: null,
+          predictedClass: null,
+          probability: null,
+          riskCategory: null,
         },
+
+
       },
     }),
 }));
