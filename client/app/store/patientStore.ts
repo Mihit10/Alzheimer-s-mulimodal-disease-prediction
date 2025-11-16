@@ -94,9 +94,11 @@ export interface PatientSession {
   alleleInput: AlleleInput;
 
   alleleResult: {
-    cn_prob: number | null;
-    risk: string | null;
-  };
+  predictedClass: string | null;
+  probability: number | null;
+  riskCategory: string | null;
+};
+
 }
 
 interface StoreState {
@@ -108,7 +110,12 @@ interface StoreState {
   updateUploads: (data: Partial<PatientSession["uploads"]>) => void;
 
   setAlleleInput: (data: Partial<AlleleInput>) => void;
-  setAlleleResult: (res: { cn_prob: number | null; risk: string | null }) => void;
+  setAlleleResult: (res: Partial<{
+    predictedClass: string;
+    probability: number | null;
+    riskCategory: string;
+  }>) => void;
+
 
   setMRIResult: (res: any) => void;
   setOCRResult: (res: any) => void;
@@ -208,9 +215,12 @@ export const usePatientStore = create<StoreState>((set) => ({
     },
 
     alleleResult: {
-      cn_prob: null,
-      risk: null,
+      predictedClass: null,
+      probability: null,
+      riskCategory: null,
     },
+
+
   },
 
   /* ------------------ UPDATE DEMOGRAPHICS ------------------ */
@@ -285,12 +295,16 @@ export const usePatientStore = create<StoreState>((set) => ({
     })),
 
   setAlleleResult: (res) =>
-    set((state) => ({
-      session: {
-        ...state.session,
-        alleleResult: res,
+  set((state) => ({
+    session: {
+      ...state.session,
+      alleleResult: {
+        ...state.session.alleleResult,
+        ...res,
       },
-    })),
+    },
+  })),
+
 
   /* ------------------ BASE MODEL ------------------ */
   setBaseModelResult: (input, prediction) =>
@@ -318,7 +332,13 @@ export const usePatientStore = create<StoreState>((set) => ({
         },
         baseModel: { input_used: null, prediction: null },
         alleleInput: { ...defaultAllele },
-        alleleResult: { cn_prob: null, risk: null },
+        alleleResult: {
+          predictedClass: null,
+          probability: null,
+          riskCategory: null,
+        },
+
+
       },
     }),
 }));

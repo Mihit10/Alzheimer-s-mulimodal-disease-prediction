@@ -37,13 +37,12 @@ trained_columns = joblib.load(f"{model_path}/trained_columns.joblib")
 # FUNCTION: Predict Risk (Individual Inputs)
 # =====================================================
 def predict_patient_risk(
-        ABETA: float,
-        TAU: float,
-        MMSE: float,
-        APVOLUME: float,
-        GENOTYPE: str
-    ):
-
+    ABETA: float,
+    TAU: float,
+    MMSE: float,
+    APVOLUME: float,
+    GENOTYPE: str
+):
     # -------------------------
     # Build dataframe
     # -------------------------
@@ -66,7 +65,6 @@ def predict_patient_risk(
     # -------------------------
     new_patient_encoded = pd.get_dummies(new_patient)
     aligned_input = pd.DataFrame(np.zeros((1, len(trained_columns))), columns=trained_columns)
-
     for c in new_patient_encoded.columns:
         if c in aligned_input.columns:
             aligned_input[c] = new_patient_encoded[c].values
@@ -77,7 +75,7 @@ def predict_patient_risk(
     aligned_input_scaled = scaler.transform(aligned_input)
 
     # -------------------------
-    # Ensure matching dimensions
+    # Align for each model
     # -------------------------
     try:
         n_expected_xgb = xgb_model.n_features_in_
@@ -101,40 +99,54 @@ def predict_patient_risk(
         blend_weights["w_nn"]  * p_nn
     )
 
-    # -------------------------
-    # CN probability
-    # -------------------------
-    cn_index = list(le_dx.classes_).index("CN")
-    cn_prob = float(blend_probs[0][cn_index])
+    # Predicted index + label
+    pred_class_idx = int(np.argmax(blend_probs, axis=1)[0])
+    pred_class_label = le_dx.inverse_transform([pred_class_idx])[0]
+
+    # Class probabilities dictionary
+    class_probs = {label: float(prob) for label, prob in zip(le_dx.classes_, blend_probs[0])}
+    top_prob = class_probs[pred_class_label]
 
     # -------------------------
-    # Risk mapping
+    # Risk Logic
     # -------------------------
-    if cn_prob > 0.8:
-        risk = "Very Low Risk (Cognitively Stable)"
-    elif 0.6 < cn_prob <= 0.8:
-        risk = "Low Risk"
-    elif 0.45 < cn_prob <= 0.6:
-        risk = "Moderate Risk"
-    elif 0.3 < cn_prob <= 0.45:
-        risk = "High Risk (Possible MCI Onset)"
-    else:
-        risk = "Very High Risk (Possible Dementia Progression)"
+    risk = "⚪ Uncertain — Model Could Not Determine Class"
+
+    cn_p  = class_probs.get("CN", 0)
+    mci_p = class_probs.get("MCI", 0)
+    dem_p = class_probs.get("Dementia") or class_probs.get("AD") or class_probs.get("DEM") or 0
+
+    if pred_class_label == "CN":
+        if cn_p > 0.85:
+            risk = "🟢 Very Low Risk (Stable Cognition)"
+        elif cn_p > 0.65:
+            risk = "🟢 Low Risk"
+        elif cn_p > 0.50:
+            risk = "🟡 Mild Risk"
+        else:
+            risk = "🟠 Converted Risk (Possible Early MCI)"
+
+    elif pred_class_label == "MCI":
+        if mci_p > 0.75:
+            risk = "🟠 High Risk of Conversion to Dementia"
+        elif mci_p > 0.55:
+            risk = "🟡 Moderate MCI Risk"
+        else:
+            risk = "🟡 Borderline MCI"
+
+    elif pred_class_label in ["Dementia", "AD", "DEM"]:
+        if dem_p > 0.80:
+            risk = "🔴 Very High Risk (Consistent with Dementia)"
+        else:
+            risk = "🟠 Possible Dementia — Confirm Clinically"
 
     # -------------------------
-    # JSON output
+    # Return payload
     # -------------------------
-    return {
-        "cn_prob": round(cn_prob, 4),
-        "risk": risk
+    result = {
+        "predicted_class": pred_class_label,
+        "probability": round(top_prob, 3),
+        "risk_category": risk
     }
 
-# result = predict_patient_risk(
-#     ABETA=950,
-#     TAU=320,
-#     MMSE=26,
-#     APVOLUME=4100,
-#     GENOTYPE="3_4"
-# )
-
-# print(result)
+    return result

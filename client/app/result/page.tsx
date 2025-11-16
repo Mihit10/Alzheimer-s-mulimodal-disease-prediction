@@ -11,7 +11,12 @@ export default function ResultPage() {
 
   // Correct store references
   const baseResult = session?.baseModel ?? { prediction: "N/A", input_used: {} };
-  const alleleResult = session?.alleleResult ?? { cn_prob: "N/A", risk: "N/A" };
+  const alleleResult = session?.alleleResult ?? {
+  predictedClass: null,
+  probability: null,
+  riskCategory: null,
+};
+
   const mriResult = session?.uploads?.mriResult ?? null;
   const ocrResult = session?.uploads?.ocrResult ?? null;
   const alleleInput = session?.alleleInput ?? {};
@@ -237,22 +242,37 @@ export default function ResultPage() {
 
               {/* Allele */}
               <div className="mt-6">
-                <h4 className="text-sm text-cyan-200/80 mb-2">Allele Risk Assessment</h4>
-                <div className="p-3 rounded-lg bg-black/30 border border-cyan-500/12">
-                  <div className="flex items-center justify-between">
-                    <div className="text-sm text-cyan-200">Risk Level</div>
-                    <div className="text-sm font-medium text-white">
-                      {alleleResult?.risk ?? "N/A"}
-                    </div>
-                  </div>
-                  <div className="mt-2 flex items-center justify-between text-xs text-cyan-300/70">
-                    <div>CN Probability</div>
-                    <div className="font-semibold">
-                      {alleleResult?.cn_prob ?? "N/A"}
-                    </div>
+              <h4 className="text-sm text-cyan-200/80 mb-2">Allele Risk Assessment</h4>
+
+              <div className="p-3 rounded-lg bg-black/30 border border-cyan-500/12">
+
+                {/* Risk Category */}
+                <div className="flex items-center justify-between">
+                  <div className="text-sm text-cyan-200">Risk Category</div>
+                  <div className="text-sm font-medium text-white">
+                    {alleleResult?.riskCategory ?? "N/A"}
                   </div>
                 </div>
+
+                {/* Predicted Class */}
+                <div className="mt-2 flex items-center justify-between text-xs text-cyan-300/70">
+                  <div>Predicted Class</div>
+                  <div className="font-semibold">
+                    {alleleResult?.predictedClass ?? "N/A"}
+                  </div>
+                </div>
+
+                {/* Probability */}
+                <div className="mt-2 flex items-center justify-between text-xs text-cyan-300/70">
+                  <div>Probability</div>
+                  <div className="font-semibold">
+                    {alleleResult?.probability ?? "N/A"}
+                  </div>
+                </div>
+
               </div>
+            </div>
+
 
               {/* MRI */}
               <div className="mt-6">
