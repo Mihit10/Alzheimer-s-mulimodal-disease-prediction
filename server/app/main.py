@@ -5,8 +5,11 @@ from ml.alele_model.final_run import predict_patient_risk
 from ml.base_model.using_model import predict_alzheimer
 from ml.base_model.using_model import sample_patient
 from ml.ocr.final_run import MedicalBloodReportExtractor
+from ml.lstm_model.predict import predict_diagnosis
 from PIL import Image
 import io
+from typing import List
+from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
 
 extractor = MedicalBloodReportExtractor()
@@ -74,3 +77,32 @@ async def predict(patient_data: dict = Body(...)):
         "input_used": patient,
         "prediction": prediction
     }
+
+
+# ── Pydantic model for LSTM visits ────────────────────────────────────────
+class VisitRecord(BaseModel):
+    visit_month: int
+    entry_age: float
+    CDGLOBAL: float
+    MMSCORE: float
+    TOTSCORE: float
+
+class LSTMPredictRequest(BaseModel):
+    visits: List[VisitRecord]
+
+@app.post("/lstm-predict")
+async def lstm_predict(req: LSTMPredictRequest):
+    """
+    Predict next-visit Alzheimer's diagnosis from longitudinal clinical data.
+    Expects 2-3 past visit records with clinical scores.
+    Uses a trained Bidirectional LSTM model.
+    """
+    if len(req.visits) < 1 or len(req.visits) > 3:
+        raise HTTPException(
+            status_code=400,
+            detail="Please provide between 1 and 3 visit records."
+        )
+
+    visits_data = [v.model_dump() for v in req.visits]
+    result = predict_diagnosis(visits_data)
+    return result
