@@ -60,7 +60,7 @@ export default function Home() {
 
       {/* --- Feature Cards --- */}
       <section className="relative z-10 mt-32 px-6 pb-20">
-        <div className="max-w-6xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="max-w-6xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
 
           {/* Card 1 */}
           <motion.div
@@ -90,7 +90,7 @@ export default function Home() {
             <h3 className="text-xl font-semibold mb-2">AI-Powered Prediction</h3>
             <p className="text-neutral-400">
               Uses deep learning, ensemble biomarkers, and CatBoost cognitive models 
-              to determine Alzheimer’s progression probability.
+              to determine Alzheimer's progression probability.
             </p>
           </motion.div>
 
@@ -109,6 +109,27 @@ export default function Home() {
               allele risk and complete extracted medical information.
             </p>
           </motion.div>
+
+          {/* Card 4 — Temporal Forecasting */}
+          <Link href="/temporal-prediction">
+            <motion.div
+              whileInView={{ opacity: 1, y: 0 }}
+              initial={{ opacity: 0, y: 30 }}
+              transition={{ delay: 0.3, duration: 0.6 }}
+              className="rounded-xl p-6 bg-white/5 backdrop-blur-lg border border-white/10 
+              hover:border-purple-400/40 hover:shadow-lg hover:shadow-purple-500/20 
+              transition-all duration-300 cursor-pointer h-full"
+            >
+              <div className="flex items-center gap-2 mb-2">
+                <h3 className="text-xl font-semibold">Temporal Forecasting</h3>
+                <span className="text-[10px] px-2 py-0.5 rounded-full bg-purple-500/20 border border-purple-500/30 text-purple-300 font-medium">NEW</span>
+              </div>
+              <p className="text-neutral-400">
+                Track disease progression using LSTM time-series analysis on longitudinal 
+                clinical scores to predict future cognitive states.
+              </p>
+            </motion.div>
+          </Link>
 
         </div>
       </section>
