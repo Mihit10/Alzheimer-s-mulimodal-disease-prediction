@@ -10,7 +10,7 @@ load_dotenv()
 client = Groq(api_key=os.getenv("GROQ_API_KEY"))
 
 class MedicalBloodReportExtractor:
-    def __init__(self, model_name="meta-llama/llama-4-maverick-17b-128e-instruct"):
+    def __init__(self, model_name="meta-llama/llama-4-scout-17b-16e-instruct"):
         self.model_name = model_name
 
     def encode_image(self, image_path):
