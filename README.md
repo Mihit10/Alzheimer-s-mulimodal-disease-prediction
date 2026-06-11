@@ -6,14 +6,14 @@
 <img src="https://img.shields.io/badge/Status-Active-22c55e?style=for-the-badge" />
 <img src="https://img.shields.io/badge/Python-3.10+-3B82F6?style=for-the-badge&logo=python&logoColor=white" />
 <img src="https://img.shields.io/badge/PyTorch-ResNet34-EF4444?style=for-the-badge&logo=pytorch&logoColor=white" />
+<img src="https://img.shields.io/badge/Keras-Bi--LSTM-FFCA28?style=for-the-badge&logo=keras&logoColor=black" />
 
 <br/><br/>
 
-# 🧠 Digital Twin for Alzheimer's Disease
-### Prediction & Progression Modeling
+# 🧠 Multimodal Digital Twin for Alzheimer's Disease
+### Current Diagnosis & Longitudinal Progression Forecasting
 
-**A multimodal AI framework for early detection, risk stratification, and stage-wise classification of Alzheimer's Disease**  
-*Clinical Data · MRI Scans · Biomarkers · Genetics · Automated Report Extraction*
+**A unified AI framework combining clinical data, MRI scans, biomarkers, and longitudinal temporal modeling to predict both current disease state and future disease trajectories.**
 
 <br/>
 
@@ -27,160 +27,148 @@
 
 ---
 
-## 📌 Overview
+## ⚡ 30-Second Project Overview
 
-Alzheimer's Disease (AD) is a progressive neurodegenerative disorder that **cannot be reliably diagnosed using a single data modality**. This project proposes a **Digital Twin–based architecture** that integrates multiple AI models into a unified, patient-specific representation:
+Traditional Alzheimer's diagnosis typically assesses a patient at a single point in time, answering: *"Does this patient currently have Alzheimer's?"* 
 
-| Modality | What It Captures |
-|----------|-----------------|
-| 🏥 Clinical & Lifestyle | Demographics, vitals, cognitive scores |
-| 🧲 Structural MRI | Brain degeneration stages |
-| 🧬 Genetics & Biomarkers | CSF proteins, APOE genotype |
-| 📄 Medical Reports | OCR-extracted real-world hospital data |
+Our project moves beyond this by asking: **"How will this patient's condition evolve in the future?"**
 
-Each modality contributes a **complementary view of disease progression**, enabling early diagnosis, explainable predictions, and future longitudinal modeling.
+We developed a **multimodal Digital Twin platform** for Alzheimer's Disease. 
+- **Phase 1:** Developed independent prediction pipelines using clinical data, MRI scans, biomarker-genetic data, and an OCR medical report ingestion pipeline.
+- **Phase 2:** Extended the system with **longitudinal temporal modeling** using Bi-LSTM and GRU networks to predict future disease progression from historical patient visits.
 
----
-
-## 🏗️ System Architecture
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│                      PATIENT DATA INPUTS                     │
-├──────────────┬──────────────┬──────────────┬────────────────┤
-│  Clinical /  │   MRI Scan   │  Biomarkers  │  Medical PDF   │
-│  Lifestyle   │   Images     │  & Genetics  │  Reports (OCR) │
-└──────┬───────┴──────┬───────┴──────┬───────┴───────┬────────┘
-       │              │              │               │
-       ▼              ▼              ▼               ▼
-  ┌─────────┐   ┌──────────┐  ┌──────────┐   ┌──────────┐
-  │CatBoost │   │ ResNet34 │  │ Ensemble │   │  Vision  │
-  │Classifier│  │   CNN    │  │XGB+RF+NN │   │  LLaMA   │
-  └────┬────┘   └────┬─────┘  └────┬─────┘   └────┬─────┘
-       │              │              │               │
-       └──────────────┴──────────────┴───────────────┘
-                              │
-                              ▼
-                 ┌────────────────────────┐
-                 │   🧠 Digital Twin      │
-                 │  Patient JSON Profile  │
-                 │ ─────────────────────  │
-                 │ • Demographics         │
-                 │ • Risk Predictions     │
-                 │ • MRI Classification   │
-                 │ • Biomarker Analysis   │
-                 │ • Temporal History     │
-                 └────────────────────────┘
-```
+The ultimate goal is to create a patient-specific digital twin that continuously updates and forecasts the disease trajectory over time.
 
 ---
 
-## 🔬 Models & Methodology
+## 🏗️ Full System Architecture
 
-### 1️⃣ Clinical / Lifestyle-Based Alzheimer's Prediction
-
-> **Goal:** Early, non-invasive risk assessment
-
-**Model:** `CatBoost Classifier`
-
-**Inputs:**
-- Demographics — age, gender, education level
-- Lifestyle — BMI, smoking, physical activity, diet quality, sleep patterns
-- Medical history & vitals
-- Cognitive & functional assessments — MMSE, ADL, Functional Assessment
-- Behavioral indicators — memory complaints, confusion, personality changes
-
-**Output:** Binary prediction — `Alzheimer's Positive` / `Alzheimer's Negative`
-
-| Metric | Score |
-|--------|-------|
-| ✅ Accuracy | **96%** |
-| ✅ F1-Score | **0.94** |
-
----
-
-### 2️⃣ MRI-Based Dementia Stage Classification
-
-> **Goal:** Structural brain degeneration analysis
-
-**Model:** `Fine-tuned ResNet34 CNN`
-
-**Classes:**
-```
-🟢 Non-Demented  →  🟡 Very Mild  →  🟠 Mild  →  🔴 Moderate Demented
+```text
+                      Patient Data
+                            │
+                            │
+      ┌─────────────────────┼─────────────────────┐
+      │                     │                     │                     │
+┌─────────────┐       ┌────────────┐       ┌──────────────┐      ┌────────────┐
+│ Clinical    │       │ MRI Scans  │       │ Biomarkers & │      │ Medical    │
+│ Records     │       │            │       │ Genetics     │      │ Reports    │
+└──────┬──────┘       └──────┬─────┘       └──────┬───────┘      └──────┬─────┘
+       │                     │                    │                     │
+┌─────────────┐       ┌────────────┐       ┌──────────────┐      ┌────────────┐
+│ CatBoost    │       │ ResNet34   │       │ Ensemble     │      │ Vision LLM │
+│ Classifier  │       │ CNN        │       │ (XGB+RF+MLP) │      │ OCR Pipeline│
+└──────┬──────┘       └──────┬─────┘       └──────┬───────┘      └──────┬─────┘
+       │                     │                    │                     │
+       └─────────────────────┴────────────────────┴─────────────────────┘
+                                     │
+                                     ▼
+                            ┌────────────────┐
+                            │  Digital Twin  │ (Current Snapshot)
+                            └────────┬───────┘
+                                     │
+                                     ▼
+                            ┌────────────────┐
+                            │ Longitudinal AI│ (Bi-LSTM / GRU)
+                            │ Temporal Model │
+                            └────────┬───────┘
+                                     │
+                                     ▼
+                        ┌────────────────────────┐
+                        │ Future Disease         │
+                        │ Progression Forecast   │
+                        └────────────────────────┘
 ```
 
-**Dataset:** ~44,000 skull-stripped MRI images with extensive augmentation & class balancing
+---
 
-| Metric | Score |
-|--------|-------|
-| ✅ Accuracy | **99.7%** |
-| ✅ Stage Confusion | Minimal between adjacent stages |
+## 🧬 Phase 1: Multimodal Snapshot Prediction
+
+In Phase 1, we built an ensemble of distinct models targeting specific data modalities. These individual predictions are fused into a **unified JSON-based Digital Twin**.
+
+### 1️⃣ Clinical Prediction Model
+*   **Dataset:** 2,149 patient records (Age, Lifestyle, Cognitive scores, Functional assessments).
+*   **Model:** `CatBoost`
+*   **Output:** Alzheimer's diagnosis prediction.
+*   **Performance:** ~96% Accuracy | F1 = 0.94
+
+### 2️⃣ MRI Analysis Pipeline
+*   **Dataset:** 44,000 MRI brain scans.
+*   **Model:** `ResNet34 CNN`
+*   **Output:** MRI-based dementia severity classification (Non Demented, Very Mild, Mild, Moderate).
+*   **Performance:** ~99.7% Validation Accuracy.
+
+### 3️⃣ Biomarker + Genetics Pipeline
+*   **Dataset:** ADNI (ABETA, TAU, APOE genotype, MMSE, Brain volume).
+*   **Model:** `Ensemble Model` (XGBoost, Random Forest, Neural Network).
+*   **Performance:** ~63.3% Accuracy (Realistic benchmark for biomarker-only predictions).
+
+### 4️⃣ OCR Medical Report Ingestion
+*   **Problem:** Dealing with unstructured real-world hospital data (PDFs, scans, images).
+*   **Solution:** A **Vision LLM OCR Pipeline** to extract report contents and convert them into structured JSON to automatically feed the prediction models.
 
 ---
 
-### 3️⃣ Biomarker + Genotype Risk Prediction
+## ⏳ Phase 2: Longitudinal Disease Progression Modeling
 
-> **Goal:** Biological and genetic risk estimation
+Phase 1 provided a single-snapshot prediction. It could not answer critical questions like: *Will CN become MCI? Will MCI become AD? What is the trajectory over the years?*
 
-**Model:** `XGBoost + Random Forest + Neural Network` (Optuna-optimized ensemble)
+Phase 2 shifts the paradigm from **Diagnosis** to **Disease Progression Prediction** using longitudinal patient history.
 
-**Inputs:**
-- CSF biomarkers — ABETA, TAU levels
-- Cognitive score — MMSE
-- MRI volumetrics — Hippocampal/AP Volume
-- APOE genotype — one-hot encoded
+### Data Engineering & Temporal Sequencing
+*   **Dataset:** ADNI Longitudinal Dataset (~22,000 records, 3,034 patients with multiple visits).
+*   **Timeline Conversion:** Cleaned and converted visits (e.g., `bl`, `m06`, `m12`, `m24`) into a continuous time representation.
+*   **Sliding Window Sequences:** Grouped visits chronologically by `subject_id` to build sequential training samples. 
+    *   *Input: `[Visit 1, Visit 2, Visit 3]` → Output: `Visit 4 Diagnosis`*
 
-**Engineered Features:**
-- `ABETA / TAU ratio`
-- `MMSE × TAU interaction term`
+### Missing Data Handling Strategies
+Missing data is a major research challenge in healthcare (e.g., fields missing in ~42-44% of records). We systematically evaluated:
+1.  **No Masking:** Baseline imputation (`NaN -> 0`).
+2.  **Sentinel Masking:** Replacing missing values with `-999` and using Keras Masking Layers.
+3.  **Binary Indicator Masking:** Adding an extra feature to indicate missingness, allowing the network to learn missingness patterns.
 
-**Output:** Multiclass probabilities across `CN` / `MCI` / `Dementia`
+### Deep Learning Temporal Models
+We systematically compared advanced time-series networks to capture long-term temporal dependencies:
+*   **Bidirectional LSTM (Bi-LSTM):** Captures temporal dependencies in both directions.
+*   **Bidirectional GRU:** Lighter and faster alternative.
 
-| Metric | Score |
-|--------|-------|
-| ✅ Accuracy (ADNI holdout) | **63.3%** |
-| ✅ Benchmark | Consistent with SOTA biomarker-only models |
+**Temporal Architecture:**
+`Bi-LSTM → Batch Norm → Dropout → Bi-LSTM → Dense Layer → Softmax Output (CN=0, MCI=1, AD=2)`
 
----
-
-### 4️⃣ OCR-Based Medical Report Extraction
-
-> **Goal:** Real-world hospital data ingestion
-
-**Model:** `Vision-enabled LLaMA (Groq)`
-
-**Capabilities:**
-- Parses PDFs and scanned medical reports
-- Extracts lab values, vitals, diagnoses, and clinical notes
-- Outputs clean, structured **JSON** for Digital Twin ingestion
+> **Research Contribution:** Moving beyond typical current-state diagnosis modeling, our system maps **patient-specific disease trajectory**, aligning with state-of-the-art Digital Twin research and Healthcare AI.
 
 ---
 
-## 🧠 Digital Twin Representation
+## 🚀 How to Run Locally
 
-Each patient is modeled as a **unified JSON-based Digital Twin**:
+Follow these steps to set up the Digital Twin environment on your local machine:
 
-```json
-{
-  "patient_id": "PT-00142",
-  "demographics": { "age": 72, "gender": "F", "education_years": 14 },
-  "clinical_risk": {
-    "model": "CatBoost",
-    "prediction": "Alzheimer's Positive",
-    "confidence": 0.91
-  },
-  "mri_stage": {
-    "model": "ResNet34",
-    "classification": "Mild Demented",
-    "confidence_scores": { "non_demented": 0.02, "mild": 0.93 }
-  },
-  "biomarker_risk": {
-    "probabilities": { "CN": 0.08, "MCI": 0.31, "Dementia": 0.61 }
-  },
-  "ocr_records": { "source": "hospital_report_2024.pdf", "tau": 420, "abeta42": 560 },
-  "temporal_history": []
-}
+### 1. Clone the Repository
+```bash
+git clone https://github.com/your-username/Alzheimer-s-mulimodal-disease-prediction.git
+cd Alzheimer-s-mulimodal-disease-prediction
+```
+
+### 2. Set Up a Virtual Environment (Recommended)
+```bash
+python -m venv venv
+# On Windows
+venv\Scripts\activate
+# On macOS/Linux
+source venv/bin/activate
+```
+
+### 3. Install Dependencies
+```bash
+pip install -r requirements.txt
+```
+
+### 4. Run the Project
+*(Depending on the specific module or app structure, you can run the models or the interface like below)*
+```bash
+# Example: Run the main application
+python app.py
+# Example: Run the Streamlit dashboard
+streamlit run main.py
 ```
 
 ---
@@ -192,41 +180,18 @@ Each patient is modeled as a **unified JSON-based Digital Twin**:
 | Category | Technologies |
 |----------|-------------|
 | **Languages** | Python 3.10+ |
-| **ML / DL** | CatBoost · XGBoost · Random Forest · PyTorch · fastai |
-| **Optimization** | Optuna · GridSearchCV |
-| **Imaging** | OpenCV · FastAI |
-| **Data** | NumPy · Pandas · Scikit-learn |
-| **OCR / NLP** | Vision-LLaMA (Groq) |
-| **Visualization** | Matplotlib · Seaborn |
-| **Environment** | Jupyter · Google Colab · VS Code |
-| **Version Control** | Git · GitHub |
+| **Deep Learning** | PyTorch (ResNet34) · Keras / TensorFlow (Bi-LSTM, GRU) |
+| **Machine Learning** | CatBoost · XGBoost · Random Forest · Optuna |
+| **NLP & Vision** | Vision-LLaMA (Groq) · OpenCV |
+| **Data Processing** | Pandas · NumPy · Scikit-learn |
 
 </div>
 
 ---
 
-## 🚀 Future Scope
-
-- [ ] 🔄 **Longitudinal modeling** with LSTM / GRU networks
-- [ ] 🤖 **Temporal multimodal transformers** for sequence prediction
-- [ ] 📈 **Disease progression forecasting** over time
-- [ ] 💊 **Treatment & lifestyle intervention simulation**
-- [ ] 🏥 **Clinical Decision Support System (CDSS)** integration
-- [ ] ⚡ **Real-time Digital Twin updates** from wearables & EHRs
-
----
-
-## 🎬 Demo
-
-> Click the thumbnail below to watch the full project walkthrough:
-
-[![Project Demo](https://img.youtube.com/vi/J1eA6TE1r8I/maxresdefault.jpg)](https://youtu.be/J1eA6TE1r8I?si=zeuuYOkh5rjfdig2)
-
----
-
 ## 👥 Authors
 
-> 🎓 **Sardar Patel Institute of Technology** — Mini Project
+> 🎓 **Sardar Patel Institute of Technology** — Major Project
 
 | Name | Role |
 |------|------|
@@ -241,6 +206,3 @@ Each patient is modeled as a **unified JSON-based Digital Twin**:
 
 > This project is for **research and educational purposes only** and is **not a certified medical diagnostic tool**.  
 > All clinical decisions must be made by qualified healthcare professionals.
-
----
-
