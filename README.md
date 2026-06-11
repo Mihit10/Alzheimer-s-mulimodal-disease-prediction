@@ -17,9 +17,7 @@
 
 <br/>
 
-[![Watch Demo](https://img.youtube.com/vi/J1eA6TE1r8I/maxresdefault.jpg)](https://youtu.be/J1eA6TE1r8I?si=zeuuYOkh5rjfdig2)
-
-> 🎬 **[▶ Watch Full Project Demo on YouTube](https://youtu.be/J1eA6TE1r8I?si=zeuuYOkh5rjfdig2)**
+[![Watch Full Project Demo](https://img.youtube.com/vi/J1eA6TE1r8I/maxresdefault.jpg)](https://youtu.be/J1eA6TE1r8I?si=zeuuYOkh5rjfdig2)
 
 <br/>
 
@@ -140,7 +138,7 @@ We systematically compared advanced time-series networks to capture long-term te
 
 ## 🚀 How to Run Locally
 
-Follow these steps to set up the Digital Twin environment on your local machine:
+This project consists of a **Next.js** frontend (`client`) and a **FastAPI** backend (`server`).
 
 ### 1. Clone the Repository
 ```bash
@@ -148,28 +146,36 @@ git clone https://github.com/your-username/Alzheimer-s-mulimodal-disease-predict
 cd Alzheimer-s-mulimodal-disease-prediction
 ```
 
-### 2. Set Up a Virtual Environment (Recommended)
+### 2. Run the FastAPI Server (Backend)
+Open a new terminal and navigate to the `server` directory:
+
 ```bash
+cd server
+
+# (Optional but recommended) Create and activate a Python virtual environment
 python -m venv venv
-# On Windows
-venv\Scripts\activate
-# On macOS/Linux
-source venv/bin/activate
+venv\Scripts\activate  # On Windows
+# source venv/bin/activate  # On macOS/Linux
+
+# Run the FastAPI server
+uvicorn app.main:app --reload
+```
+*(Make sure to install the required Python ML libraries such as PyTorch, TensorFlow, FastAPI, Uvicorn, etc., as needed).*
+
+### 3. Run the Next.js Client (Frontend)
+Open another terminal and navigate to the `client` directory:
+
+```bash
+cd client
+
+# Install Node dependencies
+npm install
+
+# Start the frontend development server
+npm run dev
 ```
 
-### 3. Install Dependencies
-```bash
-pip install -r requirements.txt
-```
-
-### 4. Run the Project
-*(Depending on the specific module or app structure, you can run the models or the interface like below)*
-```bash
-# Example: Run the main application
-python app.py
-# Example: Run the Streamlit dashboard
-streamlit run main.py
-```
+The web interface will start automatically (usually at `http://localhost:3000`), connecting to your local AI models hosted by FastAPI.
 
 ---
 
